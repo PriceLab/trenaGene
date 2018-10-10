@@ -1,0 +1,14 @@
+Package: TrenaGene
+Type: Package
+Title: abstract base class
+Version: 0.99.1
+Date: 2018-10-10
+Author: Paul Shannon
+Maintainer: Paul Shannon<pshannon@systemsbiology.org>
+Description: abstract base class, providing abstractions for expression, eqtl, footprint, enhancer and variant data
+License: Apache 2.0
+Encoding: UTF-8
+RoxygenNote: 6.1.0
+Collate:
+    'TrenaGene.R'
+    'BrainGene.R'
