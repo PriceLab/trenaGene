@@ -7,14 +7,15 @@
 \alias{TrenaGene}
 \title{TrenaGene}
 \usage{
-TrenaGene(geneSymbol, genomeName,
-  expressionDataDirectory = NA_character_, quiet = TRUE)
+TrenaGene(trenaGeneData)
 }
 \arguments{
 \item{geneSymbol}{A character string in standard HUGO nomenclature}
 
 \item{genomeName}{A string indicating the genome used by the Trena object.
 Currently, only human and mouse ("hg38","mm10") are supported}
+
+\item{expressionDataDirectory}{A string pointing to a collection of RData expression matrices}
 
 \item{quiet}{A logical indicating whether or not the Trena object should print output}
 }

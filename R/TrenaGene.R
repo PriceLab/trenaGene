@@ -1,6 +1,8 @@
 #' @import trena
+#' @import TrenaGeneData
 #' @importFrom DBI   dbConnect dbListTables dbGetQuery dbListConnections dbDisconnect
 #' @importFrom RPostgreSQL dbConnect dbListTables dbGetQuery dbListConnections dbDisconnect
+#' @import RSQLite
 #'
 #' @title TrenaGene
 #------------------------------------------------------------------------------------------------------------------------
@@ -16,15 +18,18 @@
                             genome="character",
                             transcripts="data.frame",
                             expressionDataDirectory="character",
+                            geneData="TrenaGeneData",
                             quiet="logical"
                             )
                          )
 #------------------------------------------------------------------------------------------------------------------------
+setGeneric('getGeneData',              signature='obj', function(obj) standardGeneric ('getGeneData'))
 setGeneric('getTranscriptsTable',      signature='obj', function(obj) standardGeneric ('getTranscriptsTable'))
 setGeneric('getExpressionMatrixNames', signature='obj', function(obj) standardGeneric ('getExpressionMatrixNames'))
 setGeneric('loadExpressionData',       signature='obj', function(obj, datasetName) standardGeneric ('loadExpressionData'))
 setGeneric('getEnhancers',             signature='obj', function(obj) standardGeneric ('getEnhancers'))
 setGeneric('getEncodeDHS',             signature='obj', function(obj) standardGeneric ('getEncodeDHS'))
+setGeneric('getChipSeq',               signature='obj', function(obj, chrom, start, end) standardGeneric ('getChipSeq'))
 #------------------------------------------------------------------------------------------------------------------------
 #' Define an object of class Trena
 #'
@@ -38,7 +43,7 @@ setGeneric('getEncodeDHS',             signature='obj', function(obj) standardGe
 #' @param geneSymbol  A character string in standard HUGO nomenclature
 #' @param genomeName A string indicating the genome used by the Trena object.
 #'                  Currently, only human and mouse ("hg38","mm10") are supported
-#' @parame expressionDataDirectory A string pointing to a collection of RData expression matrices
+#' @param expressionDataDirectory A string pointing to a collection of RData expression matrices
 #' @param quiet A logical indicating whether or not the Trena object should print output
 #'
 #' @return An object of the TrenaGene class
@@ -49,17 +54,24 @@ setGeneric('getEncodeDHS',             signature='obj', function(obj) standardGe
 #' # Create a Trena object using the human hg38 genome
 #' cola1a <- TrenaGene("COL1A1", "hg38")
 #'
-TrenaGene <- function(geneSymbol, genomeName, expressionDataDirectory=NA_character_, quiet=TRUE)
+#TrenaGene <- function(geneSymbol, genomeName, expressionDataDirectory=NA_character_, quiet=TRUE)
+TrenaGene <- function(trenaGeneData)
 {
+   genomeName <- getGenomeName(trenaGeneData)
+   geneSymbol <- getGeneSymbol(trenaGeneData)
+   footprintDatbaseNames <- getFootprintDatabaseNames(trenaGeneData)
+   expressionDataDirectory <- getExpressionDatasetDirectory(trenaGeneData)
+   matrix.names <- getFootprintDatabaseNames(trenaGeneData)
+
    stopifnot(genomeName %in% c("hg38"))
    tbl.transcripts <- .getCodingTranscripts(geneSymbol, genomeName)
-   expressionData <- list()
 
    .TrenaGene(geneSymbol=geneSymbol,
               genome=genomeName,
               transcripts=tbl.transcripts,
               expressionDataDirectory=expressionDataDirectory,
-              quiet=quiet)
+              geneData=trenaGeneData,
+              quiet=TRUE)
 
 } # ctor
 #------------------------------------------------------------------------------------------------------------------------
@@ -79,6 +91,22 @@ TrenaGene <- function(geneSymbol, genomeName, expressionDataDirectory=NA_charact
 
 
 } # .getCodingTranscripts
+#------------------------------------------------------------------------------------------------------------------------
+#' Get the (typically project-specific) GeneData object
+#'
+#' @rdname getGeneData
+#' @aliases getGeneData
+#'
+#' @param obj An object of class TrenaGene
+#'
+#' @export
+
+setMethod('getGeneData',  'TrenaGene',
+
+   function(obj) {
+        return(obj@geneData)
+        })
+
 #------------------------------------------------------------------------------------------------------------------------
 #' Get the transcripts for the gene
 #'
@@ -109,11 +137,12 @@ setMethod('getTranscriptsTable',  'TrenaGene',
 setMethod('getExpressionMatrixNames',  'TrenaGene',
 
    function(obj) {
-      if(is.na(obj@expressionDataDirectory))
-         return(list())
-      all.files <- list.files(obj@expressionDataDirectory)
-      rdata.filenames <- grep(".RData$", all.files, value=TRUE)
-      sub(".RData", "", rdata.filenames, fixed=TRUE)
+      #if(is.na(obj@expressionDataDirectory))
+      #   return(list())
+      #all.files <- list.files(obj@expressionDataDirectory)
+      #rdata.filenames <- grep(".RData$", all.files, value=TRUE)
+      #sub(".RData", "", rdata.filenames, fixed=TRUE)
+      getExpressionDatasetNames(obj@geneData)
       })
 
 #------------------------------------------------------------------------------------------------------------------------
@@ -179,7 +208,29 @@ setMethod('getEncodeDHS',   'TrenaGene',
        loc.min <- min(tbl.enhancers$start)
        loc.max <- max(tbl.enhancers$end)
        tbl.dhs <- getRegulatoryRegions(hdf, "wgEncodeRegDnaseClustered", chrom, loc.min, loc.max)
+           # todo: close the MySQL connection used above.
        return(tbl.dhs)
+       })
+
+#------------------------------------------------------------------------------------------------------------------------
+#' Get all the ReMap 2018 ChIP-seq binding sites in the extended (i.e., enhancers-extended) region of the gene
+#'
+#' @rdname getChipSeq
+#' @aliases getChipSeq
+#'
+#' @param obj An object of class TrenaGene
+#'
+#' @export
+
+
+setMethod('getChipSeq',  'TrenaGene',
+
+    function(obj, chrom, start, end){
+       db <- dbConnect(dbDriver("SQLite"), "~/s/data/public/human/remap-2018/remap-all.sqlite")
+       query <- sprintf("select * from chipseq where chr='%s' and start >= %d and end <= %d",
+                        chrom, start, end)
+       tbl.chipSeq <- dbGetQuery(db, query)
+       return(tbl.chipSeq)
        })
 
 #------------------------------------------------------------------------------------------------------------------------

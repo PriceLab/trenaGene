@@ -10,6 +10,7 @@ runTests <- function()
    test_withExpressionData()
    test_getEnhancers()
    test_getEncodeDHS()
+   test_getChipSeq()
 
 } # runTests
 #------------------------------------------------------------------------------------------------------------------------
@@ -61,7 +62,7 @@ test_getEnhancers <- function()
    checkEquals(dim(tbl.enhancers), c(32, 6))
    checkEquals(colnames(tbl.enhancers), c("chrom", "start", "end", "type", "combinedScore", "geneSymbol"))
 
-} # test_withExpressionData
+} # test_getEnhancers
 #------------------------------------------------------------------------------------------------------------------------
 test_getEncodeDHS <- function()
 {
@@ -75,7 +76,29 @@ test_getEncodeDHS <- function()
    checkTrue(nrow(tbl.dhs) > 2000)
    checkEquals(colnames(tbl.dhs), c("chrom", "chromStart", "chromEnd", "count", "score"))
 
-} # test_withExpressionData
+} # test_getEncodeDHS
+#------------------------------------------------------------------------------------------------------------------------
+test_getChipSeq <- function()
+{
+   printf("--- test_getChipSeq")
+
+   dataDirectory <- system.file(package="TrenaGeneSkinData", "extdata")
+   col1a1 <- TrenaGene("COL1A1", "hg38", expressionDataDirectory=dataDirectory)
+   checkTrue("TrenaGene" %in% is(col1a1))
+
+   tbl.enhancers <- getEnhancers(col1a1)
+   tbl.strong <- subset(tbl.enhancers, combinedScore > 500)
+   chrom <- tbl.strong$chrom[1]
+   loc.min <- tbl.strong$start[1]
+   loc.max <- tbl.strong$end[1]
+
+
+   tbl.chipSeq <- getChipSeq(col1a1, "chr17", 50200750, 50201000)
+   checkTrue(nrow(tbl.chipSeq) > 30)
+   checkEquals(colnames(tbl.chipSeq),
+               c("chr", "start", "end", "tf", "name", "peakStart", "peakEnd"))
+
+} # test_getChipSeq
 #------------------------------------------------------------------------------------------------------------------------
 if(!interactive()) runTests()
 

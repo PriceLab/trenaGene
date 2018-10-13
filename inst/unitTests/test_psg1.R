@@ -43,9 +43,20 @@ test_withExpressionData <- function()
    psg1 <- TrenaGene("PSG1", "hg38", expressionDataDirectory=dataDirectory)
    checkTrue("TrenaGene" %in% is(psg1))
 
-   matrix.names <- getExpressionMatrixNames(psg1)
-   checkTrue(length(matrix.names) >= 1)
+   matrix.names <- sort(getExpressionMatrixNames(psg1))
+   checkTrue(length(matrix.names) >= 2)
    checkTrue("SRP094910" %in% matrix.names)
+
+   checkTrue("FilteredCountData8282018" %in% matrix.names)
+   checkTrue("FilteredLengthScaledTPM8282018" %in% matrix.names)
+   checkTrue("SRP094910" %in% matrix.names)
+   checkTrue("UnfilteredCountData8282018" %in% matrix.names)
+   checkTrue("UnfilteredLengthScaledTPM8282018" %in% matrix.names)
+   checkTrue("FilteredCountData8282018-vsn"   %in% matrix.names)
+   checkTrue("FilteredLengthScaledTPM8282018-vsn" %in% matrix.names)
+
+   mtx <- loadExpressionData(psg1, "FilteredLengthScaledTPM8282018")
+   checkEquals(dim(mtx), c(16664, 112))
 
 } # test_withExpressionData
 #------------------------------------------------------------------------------------------------------------------------
@@ -72,7 +83,7 @@ test_getEncodeDHS <- function()
    checkTrue("TrenaGene" %in% is(psg1))
 
    tbl.dhs <- getEncodeDHS(psg1)
-   checkTrue(nrow(tbl.dhs) > 30)
+   checkTrue(nrow(tbl.dhs) > 30)   # 36 rows (10 oct 2018)
    checkEquals(colnames(tbl.dhs), c("chrom", "chromStart", "chromEnd", "count", "score"))
 
 } # test_withExpressionData
