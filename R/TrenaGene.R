@@ -29,7 +29,7 @@ setGeneric('getExpressionMatrixNames', signature='obj', function(obj) standardGe
 setGeneric('loadExpressionData',       signature='obj', function(obj, datasetName) standardGeneric ('loadExpressionData'))
 setGeneric('getEnhancers',             signature='obj', function(obj) standardGeneric ('getEnhancers'))
 setGeneric('getEncodeDHS',             signature='obj', function(obj) standardGeneric ('getEncodeDHS'))
-setGeneric('getChipSeq',               signature='obj', function(obj, chrom, start, end) standardGeneric ('getChipSeq'))
+setGeneric('getChipSeq',               signature='obj', function(obj, chrom, start, end, tfs=NA) standardGeneric ('getChipSeq'))
 #------------------------------------------------------------------------------------------------------------------------
 #' Define an object of class Trena
 #'
@@ -181,7 +181,7 @@ setMethod('loadExpressionData',  'TrenaGene',
 setMethod('getEnhancers',  'TrenaGene',
 
      function(obj){
-        full.path <- file.path(obj@expressionDataDirectory, "genomicFeatures", "geneHancer.v4.7.allGenes.RData")
+        full.path <- system.file(package="TrenaGeneData", "extdata", "geneHancer.v4.7.allGenes.RData")
         stopifnot(file.exists(full.path))
         load(full.path)
         subset(tbl.enhancers, geneSymbol == obj@geneSymbol)
@@ -219,13 +219,17 @@ setMethod('getEncodeDHS',   'TrenaGene',
 #' @aliases getChipSeq
 #'
 #' @param obj An object of class TrenaGene
+#' @param chrom string
+#' @param start numeric
+#' @param end numeric
+#' @param tfs one of more tfs - limit the hits to those for this transcription factor/s
 #'
 #' @export
 
 
 setMethod('getChipSeq',  'TrenaGene',
 
-    function(obj, chrom, start, end){
+    function(obj, chrom, start, end, tfs=NA){
        db <- dbConnect(dbDriver("SQLite"), "~/s/data/public/human/remap-2018/remap-all.sqlite")
        query <- sprintf("select * from chipseq where chr='%s' and start >= %d and end <= %d",
                         chrom, start, end)

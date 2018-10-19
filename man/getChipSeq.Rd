@@ -6,10 +6,18 @@
 \alias{getChipSeq}
 \title{Get all the ReMap 2018 ChIP-seq binding sites in the extended (i.e., enhancers-extended) region of the gene}
 \usage{
-\S4method{getChipSeq}{TrenaGene}(obj, chrom, start, end)
+\S4method{getChipSeq}{TrenaGene}(obj, chrom, start, end, tfs = NA)
 }
 \arguments{
 \item{obj}{An object of class TrenaGene}
+
+\item{chrom}{string}
+
+\item{start}{numeric}
+
+\item{end}{numeric}
+
+\item{tfs}{one of more tfs - limit the hits to those for this transcription factor/s}
 }
 \description{
 Get all the ReMap 2018 ChIP-seq binding sites in the extended (i.e., enhancers-extended) region of the gene
