@@ -1,7 +1,7 @@
 Package: TrenaGene
 Type: Package
 Title: abstract base class
-Version: 0.99.2
+Version: 0.99.3
 Date: 2018-10-19
 Author: Paul Shannon
 Maintainer: Paul Shannon<pshannon@systemsbiology.org>

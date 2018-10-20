@@ -234,6 +234,12 @@ setMethod('getChipSeq',  'TrenaGene',
        query <- sprintf("select * from chipseq where chr='%s' and start >= %d and end <= %d",
                         chrom, start, end)
        tbl.chipSeq <- dbGetQuery(db, query)
+       printf("tfs before filtering: %d", length (tbl.chipSeq$tf))
+       if(!(all(is.na(tfs))))
+         tbl.chipSeq <- subset(tbl.chipSeq, tf %in% tfs)
+       printf("incoming tf filter count: %d", length(tfs))
+       printf("tfs after filtering: %d", length(unique((tbl.chipSeq$tf))))
+       dbDisconnect(db)
        return(tbl.chipSeq)
        })
 
